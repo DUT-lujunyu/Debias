@@ -16,20 +16,6 @@ class BERT_CFModel(nn.Module):
         self.roberta = RobertaModel.from_pretrained('roberta-base')
         # self.embedding = self.roberta.embeddings
         self.mode = config.mode
-        
-        # for name, param in self.bert.named_parameters():
-        #     if name.startswith("encoder.layer.11"): \
-        #             #or name.startswith('encoder.layer.10') \
-        #             #or name.startswith('encoder.layer.9'): \
-        #             # or name.startswith('encoder.layer.8') \
-        #             # or name.startswith('encoder.layer.7') \
-        #             # or name.startswith('encoder.layer.6')\
-        #             # or name.startswith('encoder.layer.5') \
-        #             # or name.startswith('encoder.layer.4')\
-        #             # or name.startswith('encoder.layer.3'):
-        #         param.requires_grad = True
-        #     else:
-        #         param.requires_grad = False
 
         self.mlp = MLP(config.vocab_dim, config.mlp_dim, config.dropout)
         self.attention = MaskAttention(config.vocab_dim)
@@ -82,7 +68,6 @@ class BERT_CFModel(nn.Module):
 class Mixup():
 
     def __init__(self, config):
-        self.fusion_mode = config.fusion_mode
         self.constant = nn.Parameter(torch.tensor(0.0))  
         self.eps = config.eps
 
@@ -91,18 +76,9 @@ class Mixup():
         z_k: the predictions of the sentence-word branch
         z_w: the predictions of the word-only branch
         """
-        z_k, z_w, z_s = self.transform(z_k, z_w, z_s, w_fact, k_fact, s_fact)
-
-        if self.fusion_mode == 'rubi':
-            z = z_k * torch.sigmoid(z_w)
-
-        elif self.fusion_mode == 'hm':
+        
             z = torch.sigmoid(z_k) * torch.sigmoid(z_w) * torch.sigmoid(z_s)
             z = torch.log(z + self.eps) - torch.log1p(z)  # log1p(z) = log(1+z)
-
-        elif self.fusion_mode == 'sum':
-            z = z_k + z_w + z_s
-            z = torch.log(torch.sigmoid(z) + self.eps)
 
         return z
     
