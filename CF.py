@@ -77,7 +77,7 @@ class Mixup():
         z_w: the predictions of the word-only branch
         """
         
-            z = torch.sigmoid(z_k) * torch.sigmoid(z_w) * torch.sigmoid(z_s)
+            z = torch.tanh(z_k) * torch.tanh(z_w) * torch.tanh(z_s)
             z = torch.log(z + self.eps) - torch.log1p(z)  # log1p(z) = log(1+z)
 
         return z
